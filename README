@@ -1,0 +1,7 @@
+## Nimweb has the following directories 
+
+# - 1 nimweb/config -- Used to store our configuration files 
+# - 2 nimweb/data   -- For SQlite database
+# - 3 nimweb/code   -- Stores code 
+# - 4 nimweb/public -- Store CSS/JS files
+# - 5 nimbweb/tmpl  -- HTML nim files
