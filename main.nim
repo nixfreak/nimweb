@@ -1,6 +1,6 @@
 import db_sqlite # import SQlite 
 import jester    # Webserver
-import logging    # logging utils
+import logging   # logging utils
 import os        # Used to get args
 import parsecfg  # Parse CFG (config)files 
 import strutils  # Basic functions
@@ -11,20 +11,20 @@ import code/password_utils # File with password utils
 
 
 # Load config files
-let dict = loadconfig("config/config.cfg")
+let dict = loadConfig("config/config.cfg")
 
 
 # Get values and assign them
 # Values are immutatble (no change)
 # using let
 
-let db_user = dict.getSectionValue("Database", "user")
-let db_pass = dict.getSectionValue("Database", "pass")
-let db_name = dict.getSectionValue("Database", "name")
-let db_host = dict.getSectionValue("Database", "host")
+let db_user     = dict.getSectionValue("Database", "user")
+let db_pass     = dict.getSectionValue("Database", "pass")
+let db_name     = dict.getSectionValue("Database", "name")
+let db_host     = dict.getSectionValue("Database", "host")
 
-let mainURL = dict.getSectionValue("Server", "url")
-let mainPort = dict.getSectionValue("Server", "port")
+let mainURL     = dict.getSectionValue("Server", "url")
+let mainPort    = parseInt dict.getSectionValue("Server", "port")
 let mainWebsite = dict.getSectionValue("Server", "website")
 
 
@@ -66,30 +66,30 @@ proc checkLoggedIn(c: var TData) =
   if not c.req.cookies.hasKey("sid"): return
 
   # Assign cookie to `let sid`
-
+  let sid = c.req.cookies["sid"]
   # Update the value lastModified for the user in the
   # table session where the sid and IP match. If there's 
   # any result (above 0) assign values 
   if execAffectedRows(db, sql("UPDATE session SET lastModified = " & $toInt(epochTime()) & "WHERE ip = ? AND key = ?"), c.req.ip, sid) > 0:
 
-  # Get user data based on UserID from session table
-  # Assign values to user dtails - `c`
-  c.userid = getValue(db, sql"SELECT userid FROM session WHERE ip = ? AND key = ?", c.req.ip, sid)
+    # Get user data based on UserID from session table
+    # Assign values to user dtails - `c`
+    c.userid = getValue(db, sql"SELECT userid FROM session WHERE ip = ? AND key = ?", c.req.ip, sid)
 
-  # Get user data based on UserID from Person table
-  let row = getRow(db, sql"SELECT name, email, status FROM person WHERE id = ?", c.userid)
+    # Get user data based on UserID from Person table
+    let row = getRow(db, sql"SELECT name, email, status FROM person WHERE id = ?", c.userid)
 
   
-  # Assign user data
-  c.username = row[0]
-  c.email    = toLowerAscii(row[1])
+    # Assign user data
+    c.username = row[0]
+    c.email    = toLowerAscii(row[1])
 
-  # Update our session table with info about activity
-  discard tryExcel(db, sql"UPDATE person SET lastOn = ? WHERE if = ?", toInt(epochTime()), c.userid 
+    # Update our session table with info about activity
+    discard tryExec(db, sql"UPDATE person SET lastOn = ? WHERE if = ?", toInt(epochTime()), c.userid) 
 
-else:
-  # If the user is not found is the session table
-  c.loggedIn = false 
+  else:
+   # If the user is not found is the session table
+    c.loggedIn = false 
 
 
 proc login(c: var TData, email, pass: string): tuple[b: bool, s: string] =
@@ -175,7 +175,7 @@ proc login(c: var TData, email, pass: string): tuple[b: bool, s: string] =
       # Add an admin user if newuser is in the args 
       if "newuser" in commandLineParams(): 
         createAdminUser(db, commandLineParams())
-        quiti()
+        quit()
 
 # Include template files
 include "tmpl/main.tmpl"
